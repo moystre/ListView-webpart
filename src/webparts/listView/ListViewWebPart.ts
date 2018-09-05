@@ -49,6 +49,8 @@ export interface IItem {
 export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebPartProps> {
   public renListsFromSite: IRenderedListsFromSite[];
   public dropDownList: IDropDownList[];
+  public nameForTitle: string;
+  
   public columns: IColumn[];
   public items: IItem[];
 
@@ -60,7 +62,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       fieldName: 'title',
       minWidth: 200
     }]
-  } 
+  }
 
   protected async onInit(): Promise<void> {
     this.renListsFromSite = await this.getRenderedListOfLists();
@@ -78,7 +80,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
         description: this.properties.description,
         dropdownField: this.properties.dropdownField,
         columns: this.columns,
-        items: this.items
+        items: this.items,
+        listNameForTitle: this.nameForTitle
       }
     );
     ReactDom.render(element, this.domElement);
@@ -153,6 +156,17 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     return listsFromSite;
   }
 
+  public getListNameByKey(key: string): string {
+    let _key: string = key;
+    let _text: string = '';
+    this.dropDownList.forEach(element => {
+      if(element.key == _key) {
+        _text = element.text;
+      }
+    });
+    return _text;
+  }
+
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }
@@ -166,12 +180,13 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
   }
 
   public componentDidUpdate(): void {
-    console.log(this.properties.dropdownField.toString());
+    console.log(this.properties.dropdownField);
   }
 
   protected async onPropertyPaneConfigurationStart(): Promise<void> {
     // this.listItems = await this.getRenderedListOfLists();
     this.dropDownList = await this.getSelectionList();
+    // this.nameForTitle = await this.getListNameByKey(this.dropDownList)
   }
 
   protected onPropertyPaneFieldChanged(): void {
