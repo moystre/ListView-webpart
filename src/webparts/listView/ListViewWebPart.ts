@@ -8,34 +8,35 @@ import * as ReactDom from 'react-dom';
 import { IListViewProps } from './components/IListViewProps';
 import ListView from './components/ListView';
 
+
 export interface IListViewWebPartProps {
   description: string;
   dropdownField: string;
 }
 
-export interface ILists {
-  value: IList[];
+export interface IListsFromSite {
+  value: IListFromSiteAsItem[];
 }
 
-export interface IList {
+export interface IListFromSiteAsItem {
   [key: string]: any;
   Id: string;
   Title: string;
   Description: string;
 }
 
-export interface IListItem {
+export interface IRenderedListsFromSite {
   [key: string]: any;
   listId: string,
   listTitle: string,
   listDescription: string
 }
 
-export interface IPropertyLists {
-  value: IPropertyList[];
+export interface IDropDownLists {
+  value: IDropDownList[];
 }
 
-export interface IPropertyList {
+export interface IDropDownList {
   key: string,
   text: string
 }
@@ -46,9 +47,8 @@ export interface IItem {
 }
 
 export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebPartProps> {
-  public listItems: IListItem[];
-  public propertyList: IPropertyList[];
-  // public isGetItemsFinished: boolean;
+  public renListsFromSite: IRenderedListsFromSite[];
+  public dropDownList: IDropDownList[];
   public columns: IColumn[];
   public items: IItem[];
 
@@ -60,25 +60,14 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       fieldName: 'title',
       minWidth: 200
     }]
-  }
+  } 
 
   protected async onInit(): Promise<void> {
-
-    this.listItems = await this.getItems();
-    console.log(this.listItems);
-    console.log('items');
-    while (this.listItems == null) {
-      /*
-       if(!this.isGetItemsFinished) {}
-       else {
-         break;
-       }
-       */
+    this.renListsFromSite = await this.getRenderedListOfLists();
+    while (this.renListsFromSite == null) {
+      /* if(!this.isGetItemsFinished) {} */
     }
-    this.propertyList = await this.getPropertyList();
-    console.log(this.propertyList);
-    console.log('propertyList');
-
+    this.dropDownList = await this.getSelectionList();
     this.items = [];
   }
 
@@ -95,26 +84,26 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     ReactDom.render(element, this.domElement);
   }
 
-  private async getPropertyList(): Promise<IPropertyList[]> {
-    var renderedList: IPropertyList[]
+  private async getSelectionList(): Promise<IDropDownList[]> {
+    var selectionList: IDropDownList[]
     let i: number = 0;
     var list: {
       key: string,
       text: string
     }[] = [];
-    this.listItems.forEach((element: IListItem) => {
+    this.renListsFromSite.forEach((element: IRenderedListsFromSite) => {
       list.push({
         key: i.toString(),
         text: element.listTitle
       })
       i = i + 1;
     });
-    renderedList = list;
-    return renderedList;
+    selectionList = list;
+    return selectionList;
   }
 
-  private async getItems(): Promise<IListItem[]> {
-    var renderedList: IListItem[];
+  private async getRenderedListOfLists(): Promise<IRenderedListsFromSite[]> {
+    var renderedListsFromSite: IRenderedListsFromSite[];
     if (Environment.type === EnvironmentType.Local) {
       console.log('Local environment');
       return null;
@@ -128,26 +117,26 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
           listTitle: string;
           listDescription: string;
         }[] = [];
-        container = await this._getListData();
-        container.value.forEach((item: IList) => {
-          // console.log(item);
+        container = await this._getListsFromSite();
+        container.value.forEach((item: IListFromSiteAsItem) => {
+          console.log(item);
           list.push({
             listId: item.Id,
             listTitle: item.Title,
             listDescription: item.Description
           })
         });
-        renderedList = list;
+        renderedListsFromSite = list;
       }
       catch (exception) {
         console.warn(exception);
       }
-      return renderedList;
+      return renderedListsFromSite;
     }
   }
 
-  private _getListData = async (): Promise<ILists> => {
-    let returnLists: ILists = null;
+  private _getListsFromSite = async (): Promise<IListsFromSite> => {
+    let listsFromSite: IListsFromSite = null;
     try {
       const response: SPHttpClientResponse = await this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl
         + `/_api/web/lists?$filter=Hidden eq false`,
@@ -156,12 +145,12 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       if (!response.ok) {
         throw "Could not fetch list data";
       }
-      const lists: ILists = await response.json();
-      returnLists = lists;
+      const lists: IListsFromSite = await response.json();
+      listsFromSite = lists;
     } catch (exception) {
       console.warn(exception);
     }
-    return returnLists;
+    return listsFromSite;
   }
 
   protected onDispose(): void {
@@ -181,9 +170,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
   }
 
   protected async onPropertyPaneConfigurationStart(): Promise<void> {
-    this.listItems = await this.getItems();
-    this.propertyList = await this.getPropertyList();
-    // this.isGetItemsFinished = true;
+    // this.listItems = await this.getRenderedListOfLists();
+    this.dropDownList = await this.getSelectionList();
   }
 
   protected onPropertyPaneFieldChanged(): void {
@@ -206,7 +194,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
                 }),
                 PropertyPaneDropdown('dropdownField', {
                   label: 'Selected list:',
-                  options: this.propertyList
+                  options: this.dropDownList
                 })
               ]
             }

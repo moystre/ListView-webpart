@@ -5,6 +5,7 @@ import styles from './ListView.module.scss';
 
 export default class ListView extends React.Component<IListViewProps, {}> {
   public render(): React.ReactElement<IListViewProps> {
+    
     return (
       <div className={styles.listView}>
         <div>
