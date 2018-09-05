@@ -2,6 +2,7 @@ import { Environment, EnvironmentType, Version } from '@microsoft/sp-core-librar
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
 import { BaseClientSideWebPart, IPropertyPaneConfiguration, PropertyPaneDropdown, PropertyPaneTextField } from '@microsoft/sp-webpart-base';
 import * as strings from 'ListViewWebPartStrings';
+import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
 import { IListViewProps } from './components/IListViewProps';
@@ -39,21 +40,34 @@ export interface IPropertyList {
   text: string
 }
 
+export interface IItem {
+  [key: string]: any;
+  title: string;
+}
+
 export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebPartProps> {
-  public items: IListItem[];
+  public listItems: IListItem[];
   public propertyList: IPropertyList[];
   // public isGetItemsFinished: boolean;
+  public columns: IColumn[];
+  public items: IItem[];
 
   constructor() {
     super();
+    this.columns = [{
+      key: 'column1',
+      name: 'Title',
+      fieldName: 'title',
+      minWidth: 200
+    }]
   }
 
   protected async onInit(): Promise<void> {
 
-    this.items = await this.getItems();
-    console.log(this.items);
+    this.listItems = await this.getItems();
+    console.log(this.listItems);
     console.log('items');
-    while (this.items == null) {
+    while (this.listItems == null) {
       /*
        if(!this.isGetItemsFinished) {}
        else {
@@ -64,6 +78,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     this.propertyList = await this.getPropertyList();
     console.log(this.propertyList);
     console.log('propertyList');
+
+    this.items = [];
   }
 
   public render(): void {
@@ -71,7 +87,9 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       ListView,
       {
         description: this.properties.description,
-        dropdownField: this.properties.dropdownField
+        dropdownField: this.properties.dropdownField,
+        columns: this.columns,
+        items: this.items
       }
     );
     ReactDom.render(element, this.domElement);
@@ -84,7 +102,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       key: string,
       text: string
     }[] = [];
-    this.items.forEach((element: IListItem) => {
+    this.listItems.forEach((element: IListItem) => {
       list.push({
         key: i.toString(),
         text: element.listTitle
@@ -158,12 +176,12 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     //
   }
 
-  public componentDidUpdate(): void{
+  public componentDidUpdate(): void {
     console.log(this.properties.dropdownField.toString());
   }
 
   protected async onPropertyPaneConfigurationStart(): Promise<void> {
-    this.items = await this.getItems();
+    this.listItems = await this.getItems();
     this.propertyList = await this.getPropertyList();
     // this.isGetItemsFinished = true;
   }

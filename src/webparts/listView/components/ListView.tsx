@@ -1,4 +1,5 @@
 import { escape } from '@microsoft/sp-lodash-subset';
+import { CheckboxVisibility, DetailsList } from 'office-ui-fabric-react/lib/DetailsList';
 import * as React from 'react';
 import { IListViewProps } from './IListViewProps';
 import styles from './ListView.module.scss';
@@ -10,17 +11,22 @@ export default class ListView extends React.Component<IListViewProps, {}> {
         <div className={styles.container}>
           <div className={styles.row}>
             <div className={styles.column}>
-              <span className={styles.title}>Welcome to SharePoint!</span>
-              <p className={styles.subTitle}>Customize SharePoint experiences using Web Parts.</p>
               <p className={styles.description}>{escape(this.props.description)}</p>
-              <a href="https://aka.ms/spfx" className={styles.button}>
-                <span className={styles.label}>Learn more</span>
-              </a>
-               <p className="ms-font-l ms-fontColor-white">Dropdown selected value: {this.props.dropdownField}</p>
+              <p className="ms-font-l ms-fontColor-white">Dropdown selected value: {this.props.dropdownField}</p>
             </div>
           </div>
         </div>
+        <div>
+          <hr></hr>
+          <DetailsList
+            items={this.props.items}
+            columns={this.props.columns}
+            checkboxVisibility={CheckboxVisibility.onHover}
+            compact={true}>
+          </DetailsList>
+        </div>
       </div>
+
     );
   }
 }
