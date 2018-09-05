@@ -1,11 +1,37 @@
 @import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
 
+.title {
+  @include ms-font-xxl;
+  cursor: pointer;
+  text-decoration: none;
+}
+
 .listView {
+
+  .ms-DetailsListAdvancedExample {
+    .ms-CommandBar {
+      margin-bottom: 40px;
+    }
+  }
+
+  .ms-CommandBar {
+    margin-bottom: 40px;
+    cursor: pointer;
+  }
+
+  .ms-DetailsRow-cell .ms-Link {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
   .container {
     max-width: 700px;
     margin: 0px auto;
     box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
   }
+  
 
   .row {
     @include ms-Grid-row;
@@ -20,11 +46,6 @@
     @include ms-xl8;
     @include ms-xlPush2;
     @include ms-lgPush1;
-  }
-
-  .title {
-    @include ms-font-xl;
-    @include ms-fontColor-white;
   }
 
   .subTitle {
