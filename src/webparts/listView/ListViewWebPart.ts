@@ -9,6 +9,7 @@ import ListView from './components/ListView';
 
 export interface IListViewWebPartProps {
   description: string;
+  dropdownField: string;
 }
 
 export interface ILists {
@@ -69,7 +70,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     const element: React.ReactElement<IListViewProps> = React.createElement(
       ListView,
       {
-        description: this.properties.description
+        description: this.properties.description,
+        dropdownField: this.properties.dropdownField
       }
     );
     ReactDom.render(element, this.domElement);
@@ -152,10 +154,22 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     return Version.parse('1.0');
   }
 
+  public componentDidMount(): void {
+    //
+  }
+
+  public componentDidUpdate(): void{
+    console.log(this.properties.dropdownField.toString());
+  }
+
   protected async onPropertyPaneConfigurationStart(): Promise<void> {
     this.items = await this.getItems();
     this.propertyList = await this.getPropertyList();
     // this.isGetItemsFinished = true;
+  }
+
+  protected onPropertyPaneFieldChanged(): void {
+    console.log(this.properties.dropdownField);
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
@@ -172,8 +186,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
                 PropertyPaneTextField('description', {
                   label: 'Description'
                 }),
-                PropertyPaneDropdown('test', {
-                  label: 'Dropdown',
+                PropertyPaneDropdown('dropdownField', {
+                  label: 'Selected list:',
                   options: this.propertyList
                 })
               ]
@@ -185,4 +199,4 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
   }
 }
 
-
+// 508 - getEntityFields

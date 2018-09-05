@@ -16,6 +16,7 @@ export default class ListView extends React.Component<IListViewProps, {}> {
               <a href="https://aka.ms/spfx" className={styles.button}>
                 <span className={styles.label}>Learn more</span>
               </a>
+               <p className="ms-font-l ms-fontColor-white">Dropdown selected value: {this.props.dropdownField}</p>
             </div>
           </div>
         </div>
