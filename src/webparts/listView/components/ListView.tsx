@@ -10,12 +10,13 @@ export default class ListView extends React.Component<IListViewProps, {}> {
       <div className={styles.listView}>
         <div>
         <span className={styles.title}>{this.props.dropdownField}</span>
+        <span className={styles.title}>{this.props.listNameForTitle}</span>
         <hr></hr>
           <DetailsList
             items={this.props.items}
             columns={this.props.columns}
             checkboxVisibility={CheckboxVisibility.onHover}
-            compact={true}>
+            compact={false}>
           </DetailsList>
         </div>
       </div>

@@ -8,10 +8,22 @@ import * as ReactDom from 'react-dom';
 import { IListViewProps } from './components/IListViewProps';
 import ListView from './components/ListView';
 
+export interface ISPLists {
+  value: ISPList[];
+}
+
+export interface ISPList {
+  Id: string;
+  Title: string;
+  Name: string;
+  Modified: Date;
+  Description: string;
+}
 
 export interface IListViewWebPartProps {
   description: string;
   dropdownField: string;
+  listNameForTitle: string;
 }
 
 export interface IListsFromSite {
@@ -27,9 +39,9 @@ export interface IListFromSiteAsItem {
 
 export interface IRenderedListsFromSite {
   [key: string]: any;
-  listId: string,
-  listTitle: string,
-  listDescription: string
+  listId: string;
+  listTitle: string;
+  listDescription: string;
 }
 
 export interface IDropDownLists {
@@ -37,20 +49,32 @@ export interface IDropDownLists {
 }
 
 export interface IDropDownList {
-  key: string,
-  text: string
+  key: string;
+  text: string;
 }
 
 export interface IItem {
   [key: string]: any;
   title: string;
+  name: string;
+  modified: Date;
+  description: string;
+}
+
+export interface IColumn {
+  key: string;
+  name: string;
+  fieldName: string;
+  minWidth: number;
+  isResizable: boolean;
+  calculatedWidth: any;
 }
 
 export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebPartProps> {
   public renListsFromSite: IRenderedListsFromSite[];
   public dropDownList: IDropDownList[];
-  public nameForTitle: string;
-  
+  public nameForTitle: string = 'Default name';
+
   public columns: IColumn[];
   public items: IItem[];
 
@@ -60,7 +84,30 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       key: 'column1',
       name: 'Title',
       fieldName: 'title',
-      minWidth: 200
+      minWidth: 100,
+      isResizable: true
+    },
+    {
+      key: 'column2',
+      name: 'Name',
+      fieldName: 'name',
+      minWidth: 1,
+      maxWidth: 1,
+      isResizable: true
+    },
+    {
+      key: 'column3',
+      name: 'Modified',
+      fieldName: 'modified',
+      minWidth: 100,
+      isResizable: true
+    },
+    {
+      key: 'column4',
+      name: 'Description',
+      fieldName: 'description',
+      minWidth: 300,
+      isResizable: true
     }]
   }
 
@@ -71,6 +118,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     }
     this.dropDownList = await this.getSelectionList();
     this.items = [];
+    this.items = await this.getItems();
   }
 
   public render(): void {
@@ -79,12 +127,16 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       {
         description: this.properties.description,
         dropdownField: this.properties.dropdownField,
+        listNameForTitle: this.properties.listNameForTitle,
         columns: this.columns,
-        items: this.items,
-        listNameForTitle: this.nameForTitle
+        items: this.items
       }
     );
     ReactDom.render(element, this.domElement);
+  }
+
+  private async refreshItems(): Promise<IItem[]> {
+    return this.items = await this.getItems();
   }
 
   private async getSelectionList(): Promise<IDropDownList[]> {
@@ -122,7 +174,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
         }[] = [];
         container = await this._getListsFromSite();
         container.value.forEach((item: IListFromSiteAsItem) => {
-          console.log(item);
+          //console.log(item);
           list.push({
             listId: item.Id,
             listTitle: item.Title,
@@ -160,11 +212,66 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     let _key: string = key;
     let _text: string = '';
     this.dropDownList.forEach(element => {
-      if(element.key == _key) {
+      if (element.key == _key) {
         _text = element.text;
       }
     });
     return _text;
+  }
+
+  private async getItems(): Promise<IItem[]> {
+    var renderedList: IItem[];
+    if (Environment.type === EnvironmentType.Local) {
+      console.log('Local environment');
+      return null;
+    }
+    else if (Environment.type == EnvironmentType.SharePoint ||
+      Environment.type == EnvironmentType.ClassicSharePoint) {
+      try {
+        let container = null;
+        var list: {
+          title: string,
+          name: string,
+          description: string,
+          modified: Date
+        }[] = [];
+        container = await this._getListData(this.getListNameByKey(this.properties.dropdownField));
+        container.value.forEach((item: ISPList) => {
+          console.log(item);
+          list.push({
+            title: item.Title,
+            name: item.Name,
+            description: item.Description,
+            modified: item.Modified
+          })
+        });
+        renderedList = list;
+        console.log(list);
+      }
+      catch (exception) {
+        console.warn(exception);
+      }
+      return renderedList;
+    }
+  }
+
+  private _getListData = async (listName: string): Promise<ISPLists> => {
+    let returnLists: ISPLists = null;
+    let _listName: string = listName;
+    try {
+      const response: SPHttpClientResponse = await this.context.spHttpClient.get(this.context.pageContext.web.absoluteUrl
+        /*  + `/_api/web/lists?$filter=Hidden eq false`, */
+        + `/_api/web/lists/GetByTitle('` + _listName + `')/items`,
+        SPHttpClient.configurations.v1);
+      if (!response.ok) {
+        throw "Could not fetch list data";
+      }
+      const lists: ISPLists = await response.json();
+      returnLists = lists;
+    } catch (exception) {
+      console.warn(exception);
+    }
+    return returnLists;
   }
 
   protected onDispose(): void {
@@ -176,21 +283,18 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
   }
 
   public componentDidMount(): void {
-    //
   }
 
   public componentDidUpdate(): void {
-    console.log(this.properties.dropdownField);
   }
 
   protected async onPropertyPaneConfigurationStart(): Promise<void> {
-    // this.listItems = await this.getRenderedListOfLists();
+    this.refreshItems();
     this.dropDownList = await this.getSelectionList();
-    // this.nameForTitle = await this.getListNameByKey(this.dropDownList)
   }
 
   protected onPropertyPaneFieldChanged(): void {
-    console.log(this.properties.dropdownField);
+    this.refreshItems();
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
@@ -219,5 +323,3 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     };
   }
 }
-
-// 508 - getEntityFields
