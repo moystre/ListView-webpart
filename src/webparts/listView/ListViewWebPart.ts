@@ -1,6 +1,6 @@
 import { Environment, EnvironmentType, Version } from '@microsoft/sp-core-library';
 import { SPHttpClient, SPHttpClientResponse } from '@microsoft/sp-http';
-import { BaseClientSideWebPart, IPropertyPaneConfiguration, PropertyPaneDropdown, PropertyPaneTextField } from '@microsoft/sp-webpart-base';
+import { BaseClientSideWebPart, IPropertyPaneConfiguration, PropertyPaneDropdown } from '@microsoft/sp-webpart-base';
 import * as strings from 'ListViewWebPartStrings';
 import { IColumn } from 'office-ui-fabric-react/lib/DetailsList';
 import * as React from 'react';
@@ -308,9 +308,6 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: 'Description'
-                }),
                 PropertyPaneDropdown('dropdownField', {
                   label: 'Selected list:',
                   options: this.dropDownList
