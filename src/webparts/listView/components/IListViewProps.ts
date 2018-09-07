@@ -4,7 +4,6 @@ import { IItem } from "../ListViewWebPart";
 export interface IListViewProps {
   description: string;
   dropdownField: string;
-  listNameForTitle: string;
   columns: IColumn[];
   items: IItem[];
 }

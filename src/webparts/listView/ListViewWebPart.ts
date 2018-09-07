@@ -13,17 +13,17 @@ export interface ISPLists {
 }
 
 export interface ISPList {
-  Id: string;
+  Id: number;
   Title: string;
-  Name: string;
   Modified: Date;
-  Description: string;
+  wpSite: string;
+  wpDescription: string;
+  wpBusinessModule: string;
 }
 
 export interface IListViewWebPartProps {
   description: string;
   dropdownField: string;
-  listNameForTitle: string;
 }
 
 export interface IListsFromSite {
@@ -55,10 +55,12 @@ export interface IDropDownList {
 
 export interface IItem {
   [key: string]: any;
+  Id: number;
   title: string;
-  name: string;
   modified: Date;
+  site: string;
   description: string;
+  businessModule: string;
 }
 
 export interface IColumn {
@@ -73,40 +75,42 @@ export interface IColumn {
 export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebPartProps> {
   public renListsFromSite: IRenderedListsFromSite[];
   public dropDownList: IDropDownList[];
-  public nameForTitle: string = 'Default name';
-
+  public dropDownfieldName: string = '';
   public columns: IColumn[];
   public items: IItem[];
 
   constructor() {
     super();
     this.columns = [{
+      key: 'column0',
+      name: 'Id',
+      fieldName: 'Id',
+      minWidth: 30,
+      maxWidth: 30,
+      isResizable: true
+    },
+    {
       key: 'column1',
       name: 'Title',
       fieldName: 'title',
-      minWidth: 100,
+      minWidth: 150,
+      maxWidth: 200,
       isResizable: true
     },
     {
       key: 'column2',
-      name: 'Name',
-      fieldName: 'name',
-      minWidth: 1,
-      maxWidth: 1,
+      name: 'Modified',
+      fieldName: 'modified',
+      minWidth: 150,
+      maxWidth: 150,
       isResizable: true
     },
     {
       key: 'column3',
-      name: 'Modified',
-      fieldName: 'modified',
+      name: 'Site',
+      fieldName: 'site',
       minWidth: 100,
-      isResizable: true
-    },
-    {
-      key: 'column4',
-      name: 'Description',
-      fieldName: 'description',
-      minWidth: 300,
+      maxWidth: 100,
       isResizable: true
     }]
   }
@@ -119,6 +123,9 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     this.dropDownList = await this.getSelectionList();
     this.items = [];
     this.items = await this.getItems();
+    this.dropDownfieldName = this.getListNameByKey(this.properties.dropdownField);
+    console.log(this.dropDownfieldName);
+    await this.refreshItems();
   }
 
   public render(): void {
@@ -126,8 +133,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       ListView,
       {
         description: this.properties.description,
-        dropdownField: this.properties.dropdownField,
-        listNameForTitle: this.properties.listNameForTitle,
+        dropdownField: this.dropDownfieldName,
         columns: this.columns,
         items: this.items
       }
@@ -230,19 +236,27 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       try {
         let container = null;
         var list: {
+          Id: number,
           title: string,
-          name: string,
-          description: string,
           modified: Date
+          site: string,
+          description: string,
+          businessModule: string
         }[] = [];
-        container = await this._getListData(this.getListNameByKey(this.properties.dropdownField));
+        if(this.properties.dropdownField == null) {
+          this.properties.dropdownField = '1';
+        } else {
+          container = await this._getListData(this.getListNameByKey(this.properties.dropdownField));
+        }
         container.value.forEach((item: ISPList) => {
           console.log(item);
           list.push({
+            Id: item.Id,
             title: item.Title,
-            name: item.Name,
-            description: item.Description,
-            modified: item.Modified
+            modified: item.Modified,
+            site: item.wpSite,
+            description: item.wpDescription,
+            businessModule: item.wpBusinessModule
           })
         });
         renderedList = list;
@@ -293,8 +307,12 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     this.dropDownList = await this.getSelectionList();
   }
 
-  protected onPropertyPaneFieldChanged(): void {
-    this.refreshItems();
+  protected async onPropertyPaneFieldChanged(): Promise<void> {
+    await this.refreshItems();
+    this.dropDownfieldName = this.dropDownList[this.properties.dropdownField].text.toString();
+    console.log(this.dropDownfieldName);
+    this.render();
+    return null;
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
