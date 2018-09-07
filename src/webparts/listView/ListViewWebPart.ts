@@ -19,6 +19,7 @@ export interface ISPList {
   wpSite: string;
   wpDescription: string;
   wpBusinessModule: string;
+  AuthorId: number;
 }
 
 export interface IListViewWebPartProps {
@@ -61,6 +62,7 @@ export interface IItem {
   site: string;
   description: string;
   businessModule: string;
+  authorId: number;
 }
 
 export interface IColumn {
@@ -109,8 +111,16 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
       key: 'column3',
       name: 'Site',
       fieldName: 'site',
-      minWidth: 100,
-      maxWidth: 100,
+      minWidth: 150,
+      maxWidth: 150,
+      isResizable: true
+    },
+    {
+      key: 'column4',
+      name: 'AuthorId',
+      fieldName: 'authorId',
+      minWidth: 50,
+      maxWidth: 50,
       isResizable: true
     }]
   }
@@ -241,7 +251,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
           created: Date
           site: string,
           description: string,
-          businessModule: string
+          businessModule: string,
+          authorId: number
         }[] = [];
         if(this.properties.dropdownField == null) {
           this.properties.dropdownField = '1';
@@ -256,7 +267,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
             created: item.Created,
             site: item.wpSite,
             description: item.wpDescription,
-            businessModule: item.wpBusinessModule
+            businessModule: item.wpBusinessModule,
+            authorId: item.AuthorId
           })
         });
         renderedList = list;
