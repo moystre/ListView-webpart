@@ -15,7 +15,7 @@ export interface ISPLists {
 export interface ISPList {
   Id: number;
   Title: string;
-  Modified: Date;
+  Created: Date;
   wpSite: string;
   wpDescription: string;
   wpBusinessModule: string;
@@ -57,7 +57,7 @@ export interface IItem {
   [key: string]: any;
   Id: number;
   title: string;
-  modified: Date;
+  created: Date;
   site: string;
   description: string;
   businessModule: string;
@@ -99,8 +99,8 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
     },
     {
       key: 'column2',
-      name: 'Modified',
-      fieldName: 'modified',
+      name: 'Created',
+      fieldName: 'created',
       minWidth: 150,
       maxWidth: 150,
       isResizable: true
@@ -238,7 +238,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
         var list: {
           Id: number,
           title: string,
-          modified: Date
+          created: Date
           site: string,
           description: string,
           businessModule: string
@@ -253,7 +253,7 @@ export default class ListViewWebPart extends BaseClientSideWebPart<IListViewWebP
           list.push({
             Id: item.Id,
             title: item.Title,
-            modified: item.Modified,
+            created: item.Created,
             site: item.wpSite,
             description: item.wpDescription,
             businessModule: item.wpBusinessModule
